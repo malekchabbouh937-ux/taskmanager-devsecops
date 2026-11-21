@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'yassmina/taskmanager'
+        IMAGE_NAME = 'chabbouha/taskmanager'
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
     }
 
