@@ -55,3 +55,20 @@ Exemple :
 
 À compléter dans les phases suivantes.
 
+
+## Docker
+
+    docker build -t taskmanager:1.0 .
+    docker run -d --name taskmanager -p 9090:9090 taskmanager:1.0
+    curl http://localhost:9090/api/tasks
+
+## Kubernetes (Minikube)
+
+    minikube start --driver=docker
+
+    minikube image load taskmanager:1.1
+
+    kubectl apply -f k8s/
+
+    curl http://$(minikube ip):30090/api/tasks
+
