@@ -72,3 +72,39 @@ Exemple :
 
     curl http://$(minikube ip):30090/api/tasks
 
+
+## Image Docker Hub
+
+Image publiée automatiquement par le pipeline Jenkins :
+
+- Dépôt : https://hub.docker.com/r/chabbouha/taskmanager
+- Tags : numéro de build (`1`, `2`, ...) et `latest`
+
+Exécution :
+
+    docker run -d -p 9090:9090 chabbouha/taskmanager:latest
+    curl http://localhost:9090/api/tasks
+
+## Pipeline CI/CD (Jenkins)
+
+Le pipeline est défini dans le fichier `Jenkinsfile` versionné avec le projet.
+
+| Étape | Description |
+|---|---|
+| Checkout | Récupération du code depuis GitHub (branche develop) |
+| Build and Tests | `mvn clean verify` : compilation et tests unitaires |
+| Docker Build | Construction de l'image à partir du Dockerfile |
+| Docker Push | Publication sur Docker Hub |
+
+Déclenchement : Poll SCM (vérification du dépôt toutes les 2 minutes).
+
+### Gestion des secrets
+
+Les identifiants Docker Hub sont stockés dans Jenkins Credentials (ID `dockerhub-creds`)
+et injectés dans le pipeline avec `withCredentials`. Le mot de passe est transmis avec
+`--password-stdin` : il n'apparaît ni dans le code ni dans les logs.
+Un token d'accès (et non le mot de passe du compte) est utilisé, avec une date d'expiration.
+
+### Sécurité (phases suivantes)
+
+SonarQube, OWASP Dependency-Check, Trivy et OWASP ZAP seront ajoutés au pipeline.
