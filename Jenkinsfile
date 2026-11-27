@@ -38,6 +38,22 @@ pipeline {
         }
 
         // Phase 6 : Trivy (avant la publication)
+                stage('Trivy Scan') {
+            steps {
+                sh '''
+                    mkdir -p trivy-reports
+                    TRIVY="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/ aquasec/trivy:latest"
+                    $TRIVY image --skip-db-update --scanners vuln --pkg-types os --severity HIGH,CRITICAL --exit-code 0 $IMAGE_NAME:$IMAGE_TAG > trivy-reports/trivy-report.txt
+                    cat trivy-reports/trivy-report.txt
+                    $TRIVY image --skip-db-update --scanners vuln --pkg-types os --severity CRITICAL --ignore-unfixed --exit-code 1 $IMAGE_NAME:$IMAGE_TAG
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-reports/*', allowEmptyArchive: true
+                }
+            }
+        }
 
         stage('Docker Push') {
             steps {
