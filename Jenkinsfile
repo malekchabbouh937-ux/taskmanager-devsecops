@@ -28,6 +28,23 @@ pipeline {
                 }
             }
         }
+        stage('Dependency Scan') {
+            steps {
+                sh '''
+                    mkdir -p trivy-reports
+                    TRIVY="docker run --rm -v $WORKSPACE:/project -v /var/lib/jenkins/.m2:/root/.m2 -v trivy-cache:/root/.cache/ aquasec/trivy:latest"
+                    $TRIVY fs --skip-db-update --skip-java-db-update --offline-scan --skip-dirs /project/target --scanners vuln --severity HIGH,CRITICAL --exit-code 0 /project > trivy-reports/dependency-report.txt
+                    cat trivy-reports/dependency-report.txt
+                    $TRIVY fs --skip-db-update --skip-java-db-update --offline-scan --skip-dirs /project/target --scanners vuln --severity CRITICAL --ignore-unfixed --exit-code 1 /project
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-reports/*', allowEmptyArchive: true
+                }
+            }
+        }
+
 
         // Phase 6 : SonarQube, Dependency-Check
 
